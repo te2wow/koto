@@ -1,0 +1,44 @@
+name: go-tdd
+initial: implement
+max_steps: 25
+vars:
+  test_cmd: "go test ./..."
+  vet_cmd: "go vet ./..."
+
+steps:
+  - name: implement
+    type: agent
+    edit: true
+    persona: |
+      Implement this task by editing the Go code directly. Keep it minimal.
+      Task: {{task}}
+      When done, end with __NEXT:test__
+    rules:
+      - on: "__NEXT:test__"
+        to: test
+
+  - name: test
+    type: gate
+    run: "{{vars.test_cmd}}"
+    max_retries: 5
+    on_pass: vet
+    on_fail: fix
+
+  - name: fix
+    type: agent
+    edit: true
+    persona: |
+      Tests failed. Fix the production code so they pass. Do not weaken tests.
+      Output:
+      {{gate_output}}
+      When done, end with __NEXT:test__
+    rules:
+      - on: "__NEXT:test__"
+        to: test
+
+  - name: vet
+    type: gate
+    run: "{{vars.vet_cmd}}"
+    max_retries: 3
+    on_pass: COMPLETE
+    on_fail: fix

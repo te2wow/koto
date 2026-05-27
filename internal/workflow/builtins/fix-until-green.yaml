@@ -1,0 +1,45 @@
+name: fix-until-green
+initial: implement
+max_steps: 20
+vars:
+  test_cmd: "echo 'set vars.test_cmd to your test command' && false"
+
+steps:
+  - name: implement
+    type: agent
+    edit: true
+    persona: |
+      Implement the following task by editing the code directly.
+      Keep changes minimal and focused.
+
+      Task:
+      {{task}}
+
+      When done, end your message with __NEXT:gate__
+    rules:
+      - on: "__NEXT:gate__"
+        to: gate
+
+  - name: gate
+    type: gate
+    run: "{{vars.test_cmd}}"
+    max_retries: 5
+    on_pass: COMPLETE
+    on_fail: fix
+
+  - name: fix
+    type: agent
+    edit: true
+    persona: |
+      The gate failed. Fix the code so it passes. Do not weaken or delete the checks.
+
+      Gate output:
+      {{gate_output}}
+
+      Task:
+      {{task}}
+
+      When you have applied a fix, end your message with __NEXT:gate__
+    rules:
+      - on: "__NEXT:gate__"
+        to: gate

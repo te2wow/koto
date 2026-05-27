@@ -1,0 +1,5 @@
+/koto
+/dist/
+.koto/runs/
+*.test
+*.out

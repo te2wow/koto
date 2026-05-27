@@ -1,0 +1,85 @@
+name: default
+initial: plan
+max_steps: 30
+vars:
+  test_cmd: "echo 'set vars.test_cmd to your test command' && false"
+
+steps:
+  - name: plan
+    type: agent
+    edit: false
+    persona: |
+      You are a senior engineer acting as a planner.
+      Read the task and produce a short, concrete implementation plan
+      (files to touch, the approach, and how it will be tested).
+      Do NOT write code yet.
+
+      Task:
+      {{task}}
+
+      End your message with the marker __NEXT:implement__
+    rules:
+      - on: "__NEXT:implement__"
+        to: implement
+
+  - name: implement
+    type: agent
+    edit: true
+    persona: |
+      You are a coder. Implement the plan below by editing the code directly.
+      Keep changes minimal and focused. Do not add explanatory comments that
+      restate what the code does.
+
+      Plan / previous output:
+      {{prev}}
+
+      Original task:
+      {{task}}
+
+      When the implementation is complete, end your message with __NEXT:test__
+    rules:
+      - on: "__NEXT:test__"
+        to: test
+
+  - name: test
+    type: gate
+    run: "{{vars.test_cmd}}"
+    max_retries: 4
+    on_pass: review
+    on_fail: fix
+
+  - name: fix
+    type: agent
+    edit: true
+    persona: |
+      The quality gate (tests) failed. Fix the production code so the gate passes.
+      It is unacceptable to delete or weaken tests to make them pass.
+
+      Gate output:
+      {{gate_output}}
+
+      Original task:
+      {{task}}
+
+      When you have applied a fix, end your message with __NEXT:test__
+    rules:
+      - on: "__NEXT:test__"
+        to: test
+
+  - name: review
+    type: agent
+    edit: false
+    persona: |
+      You are a reviewer. The tests pass. Review the change for correctness,
+      clarity, and whether it actually satisfies the task. Be strict but fair.
+
+      Task:
+      {{task}}
+
+      If the change is acceptable, end with __DONE__.
+      If it needs more work, end with __NEXT:fix__ and explain what is wrong.
+    rules:
+      - on: "__DONE__"
+        to: COMPLETE
+      - on: "__NEXT:fix__"
+        to: fix
