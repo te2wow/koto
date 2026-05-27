@@ -77,7 +77,7 @@ func newRunCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer logger.Close()
+			defer func() { _ = logger.Close() }()
 
 			// Reporter: JSON to stderr if requested, else human (color iff stderr is a TTY).
 			var reporter engine.Reporter

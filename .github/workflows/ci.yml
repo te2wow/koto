@@ -31,7 +31,9 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.26"
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: latest
+      # Build golangci-lint from source with the same Go toolchain so it can read
+      # a go 1.26 module (prebuilt binaries lag the latest Go release).
+      - name: Install golangci-lint
+        run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+      - name: Lint
+        run: golangci-lint run ./...

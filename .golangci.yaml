@@ -6,3 +6,12 @@ linters:
     - misspell
     - unconvert
     - unparam
+  settings:
+    errcheck:
+      # Writes to stderr/stdout via fmt.Fprint* cannot meaningfully fail here and
+      # are conventionally unchecked.
+      exclude-functions:
+        - (io.Writer).Write
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln

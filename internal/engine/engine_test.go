@@ -19,7 +19,7 @@ func newTestEngine(t *testing.T, wf *workflow.Workflow, mock *provider.Mock) *En
 	if err != nil {
 		t.Fatalf("runlog: %v", err)
 	}
-	t.Cleanup(func() { logger.Close() })
+	t.Cleanup(func() { _ = logger.Close() })
 	return &Engine{
 		WF:       wf,
 		Provider: mock,
@@ -118,7 +118,7 @@ steps:
 	mock := &provider.Mock{Default: "__NEXT:gate__"}
 
 	logger, _ := runlog.New(dir)
-	defer logger.Close()
+	defer func() { _ = logger.Close() }()
 	eng := &Engine{WF: wf, Provider: mock, WorkDir: dir, Log: logger}
 
 	outcome, err := eng.Run(context.Background(), "task")
@@ -270,7 +270,7 @@ steps:
 	if _, err := eng.Run(context.Background(), "task"); err != nil {
 		t.Fatalf("run: %v", err)
 	}
-	logger.Close()
+	_ = logger.Close()
 	data, err := os.ReadFile(filepath.Join(logger.Dir, "events.jsonl"))
 	if err != nil {
 		t.Fatalf("read log: %v", err)
