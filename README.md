@@ -135,12 +135,41 @@ steps:
 
 ```
 koto run <task>          Run a workflow on a task until the gates pass
+koto dashboard           Start the local web dashboard
 koto workflows           List available workflows (local → user → builtin)
 koto validate <file>     Validate a workflow YAML
 koto init                Scaffold .koto/ with a starter workflow
 koto list                List previous runs
 koto version             Print version
 ```
+
+### `koto dashboard`
+
+Manage workflows, watch runs live, and start new runs from the browser.
+The UI is embedded in the binary — there is nothing to install or build,
+just a local HTTP server bound to `127.0.0.1`.
+
+```bash
+koto dashboard            # http://127.0.0.1:4274
+koto dashboard --open     # also opens the browser
+koto dashboard --addr :8080
+```
+
+Features:
+
+- **Dashboard** — totals (completed / aborted / max-steps / running), average
+  steps per run, 14-day activity chart, gate attempts per step.
+- **Runs** — list with status pills and a click-through timeline view of every
+  event (`run_start`, `step_enter`, `agent_output`, `gate_result`, …).
+- **Live** — server-sent-events stream of an in-flight run, updated as the
+  workflow advances.
+- **Workflows** — list every workflow across `local`, `user`, and `builtin`
+  scopes; create, duplicate, move, delete.
+- **Editor** — visual editor for the YAML: drag-and-drop step reorder, inline
+  prompt / gate-command / variable editing, autocompleted transition targets,
+  live `koto validate` next to the YAML pane.
+- **New run** — kick off a workflow by filling in a task + vars, then jump to
+  Live to watch it run.
 
 ### `run` flags
 

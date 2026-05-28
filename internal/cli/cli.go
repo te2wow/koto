@@ -59,6 +59,7 @@ func NewRootCmd() *cobra.Command {
 		newWorkflowsCmd(),
 		newValidateCmd(),
 		newInitCmd(),
+		newDashboardCmd(),
 		newVersionCmd(),
 	)
 	return root
