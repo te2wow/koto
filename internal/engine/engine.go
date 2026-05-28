@@ -126,7 +126,13 @@ func (e *Engine) runAgent(ctx context.Context, step *workflow.Step, rc renderCon
 		return workflow.TargetComplete, nil
 	}
 
-	out, err := e.Provider.Run(ctx, prompt, provider.Options{Model: e.Model, WorkDir: e.WorkDir, Edit: step.Edit, Isolate: e.Isolate})
+	out, err := e.Provider.Run(ctx, prompt, provider.Options{
+		Model:    e.Model,
+		WorkDir:  e.WorkDir,
+		Edit:     step.Edit,
+		Isolate:  e.Isolate,
+		Reminder: markerReminder(step.Rules),
+	})
 	if err != nil {
 		return "", fmt.Errorf("step %q: %w", step.Name, err)
 	}

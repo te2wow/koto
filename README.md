@@ -153,9 +153,18 @@ koto version             Print version
 | `--json` | off | machine-readable JSON events on stderr |
 | `--dry-run` | off | trace the workflow without calling the agent |
 | `--no-input` | off | never prompt; auto-approve approval steps |
-| `--bare` | off | isolate the agent from the host's global config/hooks |
+| `--no-isolate` | off | let the agent load the host's user-level config/hooks |
 
 Exit codes: `0` success · `1` failure · `2` usage · `3` workflow ABORT.
+
+### Isolation (on by default)
+
+koto runs each agent step isolated from your **user-level** agent config so a
+personal `CLAUDE.md`, hooks, or auto-memory can't inject unrelated behavior into a
+workflow (for Claude Code this is `--setting-sources project`; OAuth auth is kept,
+no API key needed). Project-level config in the repo is still honored. Pass
+`--no-isolate` to opt out. koto also appends the step's transition markers to the
+agent's system prompt, so the agent reliably ends with a valid marker.
 
 ## Configuration
 

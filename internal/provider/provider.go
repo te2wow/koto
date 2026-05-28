@@ -12,10 +12,11 @@ import (
 
 // Options configures a single agent invocation.
 type Options struct {
-	Model   string // provider model, empty = provider default
-	WorkDir string // working directory for the agent process
-	Edit    bool   // whether the step permits file edits
-	Isolate bool   // skip the host's global agent config/hooks (e.g. claude --bare)
+	Model    string // provider model, empty = provider default
+	WorkDir  string // working directory for the agent process
+	Edit     bool   // whether the step permits file edits
+	Isolate  bool   // exclude the host's user-level agent config/hooks (default on)
+	Reminder string // appended to the system prompt (e.g. transition-marker reminder)
 }
 
 // Provider runs an agent with a prompt and returns its textual output.
@@ -91,11 +92,14 @@ func claudeArgs(prompt string, opts Options) (string, []string, string) {
 	} else {
 		args = append(args, "--permission-mode", "plan")
 	}
-	// Isolation: skip the host user's global CLAUDE.md, hooks, and auto-memory so
-	// koto's workflow prompt is the only instruction the agent follows. Without
-	// this, a personal CLAUDE.md can inject unrelated behavior into every step.
+	// Isolation: load only the project-level settings, so the host user's global
+	// CLAUDE.md, hooks, and auto-memory don't inject unrelated behavior into every
+	// step. OAuth/keychain auth is preserved (unlike --bare, this needs no API key).
 	if opts.Isolate {
-		args = append(args, "--bare")
+		args = append(args, "--setting-sources", "project")
+	}
+	if opts.Reminder != "" {
+		args = append(args, "--append-system-prompt", opts.Reminder)
 	}
 	return "claude", args, ""
 }

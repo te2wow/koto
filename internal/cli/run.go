@@ -27,7 +27,7 @@ func newRunCmd() *cobra.Command {
 		jsonOut    bool
 		dryRun     bool
 		noInput    bool
-		isolate    bool
+		noIsolate  bool
 		setVars    []string
 	)
 
@@ -100,7 +100,7 @@ func newRunCmd() *cobra.Command {
 				Approver: makeApprover(noInput),
 				Log:      logger,
 				DryRun:   dryRun,
-				Isolate:  isolate,
+				Isolate:  !noIsolate,
 			}
 
 			ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -124,7 +124,7 @@ func newRunCmd() *cobra.Command {
 	cmd.Flags().BoolVar(&jsonOut, "json", false, "emit machine-readable JSON events to stderr")
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "trace the workflow without calling the agent or running gates")
 	cmd.Flags().BoolVar(&noInput, "no-input", false, "never prompt; auto-approve approval steps")
-	cmd.Flags().BoolVar(&isolate, "bare", false, "isolate the agent from the host's global config/hooks (claude --bare)")
+	cmd.Flags().BoolVar(&noIsolate, "no-isolate", false, "let the agent load the host's user-level config/hooks (isolation is on by default)")
 	cmd.Flags().StringArrayVar(&setVars, "set", nil, "override a workflow var, e.g. --set test_cmd=\"go test ./...\"")
 	return cmd
 }
