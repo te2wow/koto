@@ -12,43 +12,39 @@ The workflow does not complete until the gates pass.
 
 ## Why koto exists (market gaps it fills)
 
-From a survey of 60+ tools across AI agent orchestration, CLI agent control, YAML
-workflow engines, agent-reliability research, and Go CLI OSS:
+From a survey of the AI agent orchestration, CLI agent control, YAML workflow
+engine, agent-reliability, and Go CLI OSS landscapes, four gaps stood out:
 
-1. **The "force the process" layer is npm-only.** `takt` and `Backlog.md` are the
-   only tools that make AI follow a declared process, and both ship as TypeScript/npm
-   — Node and a dependency tree are an adoption tax.
-2. **Go tools in this space only do parallel session management.** `claude-squad`,
-   `container-use`, `claudio`, `uzi` all manage parallel worktrees; **none enforce a
-   review/quality gate as a process**, and several have stalled.
-3. **Quality gates are "suggested", not "executed".** Most tools present checklists or
-   score diffs. Only `takt` and Claude Code hooks have a hard `ABORT`/exit-2 gate.
-4. **Aider's test-fix loop is a "killer feature"** but is locked inside one agent.
-   There is no agent-independent tool that generalizes "keep fixing until tests pass".
-5. **Self-reflection alone hurts accuracy** (ICLR'24): intrinsic self-correction
+1. **The "force the process" layer is mostly npm/TypeScript.** The few tools that
+   make an agent follow a declared process require Node and a dependency tree — an
+   adoption tax for a developer command-line tool.
+2. **Go tools in this space mostly do parallel session management.** They manage
+   parallel worktrees but do not enforce a review/quality gate as part of the process.
+3. **Quality gates are usually "suggested", not "executed".** Most tools present
+   checklists or score diffs rather than running a real command and blocking on it.
+4. **Self-reflection alone hurts accuracy** (ICLR'24): intrinsic self-correction
    without external feedback can *degrade* output. Review steps need an *external*
    verification signal (tests, lint, types, or a different model).
 
-**koto's position:** the Go, single-binary, *gate-enforcing* runner that nobody
-has built. It takes the supported distribution model in this space (Go single binary,
-proven by claude-squad/container-use) and loads it with the market's biggest missing
-piece (hard, executed quality gates).
+**koto's position:** a Go, single-binary, *gate-enforcing* runner. It pairs the
+distribution model that works best for developer CLI tools (a zero-dependency
+single binary) with the capability most tools lack (hard, executed quality gates).
 
-## Differentiation vs. takt
+## Design choices
 
-| Axis | takt | koto |
+| Axis | koto's choice | Why |
 |---|---|---|
-| Distribution | TypeScript / npm (`npm i -g takt`) | **Go single binary** (`go install` / curl) — zero deps |
-| Core enforcement | AI reviewer decides "approved / needs fix" | **External command exit code** (`go test`, `lint`, …) — deterministic |
-| Prompt model | Faceted Prompting (persona/policy/knowledge/instruction/output split, 5 files) | **One step = one prompt** — read it all in one place |
-| Providers | 6 (SDKs + CLIs) | **CLI exec only** (provider-agnostic, never broken by SDK churn) |
-| Deliberation | MAGI majority vote, parallel reviewers | Linear loop + optional parallel reviewers (kept minimal) |
-| Reliability primitive | review loop | review loop **+ executed gates + external feedback injection** |
-| Footprint | large TS codebase | **small, readable Go** — auditable in an afternoon |
+| Distribution | **Go single binary** (`go install` / curl) — zero deps | no Node/runtime to install; easy to drop into CI |
+| Core enforcement | **External command exit code** (`go test`, `lint`, …) | deterministic; the model cannot fake a passing test |
+| Prompt model | **One step = one prompt** | the whole workflow is readable in one file |
+| Providers | **CLI exec only** | provider-agnostic; never broken by SDK churn |
+| Deliberation | Linear loop (+ optional parallel reviewers) | keep the surface small and predictable |
+| Reliability primitive | review loop **+ executed gates + external feedback injection** | anchor judgment on a signal outside the model |
+| Footprint | **small, readable Go** | auditable in an afternoon |
 
-koto keeps takt's core philosophy ("trust the AI, but guarantee the process") and
-strips everything else, then adds the one thing the whole market is missing: a gate
-that actually *runs* and *blocks*.
+The core philosophy — *trust the AI, but guarantee the process* — is kept minimal:
+everything else is stripped, and the one thing added is a gate that actually *runs*
+and *blocks*.
 
 ## Reliability features (grounded in research)
 

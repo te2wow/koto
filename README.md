@@ -30,19 +30,16 @@ koto moves the decision out of the agent and into the workflow, and anchors it o
 signal the model can't fake: **the exit code of a real command.** Tests either pass
 or they don't.
 
-This idea isn't new — [`takt`](https://github.com/nrslib/takt) pioneered
-YAML-driven, review-enforcing agent workflows. koto takes the same philosophy
-("trust the AI, but guarantee the process") and makes three deliberate choices:
+koto's deliberate design choices:
 
-| | takt | **koto** |
-|---|---|---|
-| Distribution | TypeScript / npm | **Go single binary, zero deps** |
-| What enforces the loop | an AI reviewer's judgment | **a real command's exit code** |
-| Prompt model | Faceted Prompting (5 files/step) | **one step = one prompt** |
-| Providers | SDKs + CLIs | **CLI exec only** (never broken by SDK churn) |
-| Footprint | full framework | **small, readable, auditable** |
-
-See [`docs/vs-takt.html`](docs/vs-takt.html) for the full comparison.
+- **Trust the AI, but guarantee the process** — review and fix steps can't be
+  silently skipped; the workflow's state machine drives them.
+- **Gates enforced by exit code, not by judgment** — what counts as "done" is a
+  real command's result, which the model cannot fake.
+- **One step = one prompt** — a workflow is readable top to bottom in one file.
+- **CLI exec only** — koto shells out to the agent CLIs you already have, so it is
+  never broken by provider SDK changes.
+- **Single Go binary, zero deps** — `go install` or download a binary; nothing else.
 
 ## Install
 
